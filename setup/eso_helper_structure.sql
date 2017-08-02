@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Aug 02, 2017 at 03:29 PM
+-- Generation Time: Aug 02, 2017 at 04:02 PM
 -- Server version: 5.7.19-0ubuntu0.16.04.1
 -- PHP Version: 7.1.6-2~ubuntu14.04.1+deb.sury.org+1
 
@@ -100,7 +100,7 @@ CREATE TABLE `character_recipes` (
 
 CREATE TABLE `gems` (
   `id` tinyint(3) UNSIGNED NOT NULL,
-  `name` varchar(15) NOT NULL,
+  `name` varchar(18) NOT NULL,
   `category_id` tinyint(3) UNSIGNED NOT NULL,
   `trait` varchar(15) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -138,14 +138,6 @@ CREATE TABLE `item_page_categories` (
   `description` varchar(6) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- Dumping data for table `item_page_categories`
---
-
-INSERT INTO `item_page_categories` (`id`, `description`) VALUES
-(1, 'Weapon'),
-(2, 'Armor');
-
 -- --------------------------------------------------------
 
 --
@@ -157,21 +149,6 @@ CREATE TABLE `item_skill_categories` (
   `page_category_id` tinyint(3) UNSIGNED NOT NULL,
   `description` varchar(17) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Dumping data for table `item_skill_categories`
---
-
-INSERT INTO `item_skill_categories` (`id`, `page_category_id`, `description`) VALUES
-(1, 1, 'Two-handed'),
-(3, 1, 'One-handed'),
-(4, 1, 'Bow'),
-(5, 1, 'Destruction staff'),
-(6, 1, 'Restoration staff'),
-(7, 2, 'Shield'),
-(8, 2, 'Light armor'),
-(9, 2, 'Medium armor'),
-(10, 2, 'Heavy armor');
 
 -- --------------------------------------------------------
 
@@ -185,16 +162,6 @@ CREATE TABLE `priorities` (
   `weight` tinyint(3) UNSIGNED NOT NULL DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- Dumping data for table `priorities`
---
-
-INSERT INTO `priorities` (`id`, `description`, `weight`) VALUES
-(1, 'primary', 3),
-(2, 'secondary', 2),
-(3, 'extra', 1),
-(4, 'temporary', 0);
-
 -- --------------------------------------------------------
 
 --
@@ -205,15 +172,6 @@ CREATE TABLE `professions` (
   `id` tinyint(3) UNSIGNED NOT NULL,
   `name` varchar(15) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Professions';
-
---
--- Dumping data for table `professions`
---
-
-INSERT INTO `professions` (`id`, `name`) VALUES
-(1, 'Blacksmithing'),
-(2, 'Tailoring'),
-(3, 'Woodworking');
 
 -- --------------------------------------------------------
 
@@ -291,16 +249,6 @@ CREATE TABLE `recipe_statuses` (
   `description` varchar(15) NOT NULL,
   `research_slot` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Dumping data for table `recipe_statuses`
---
-
-INSERT INTO `recipe_statuses` (`id`, `description`, `research_slot`) VALUES
-(1, 'Not researched', 0),
-(2, 'Reserved', 1),
-(3, 'In progress', 1),
-(4, 'Learned', 0);
 
 --
 -- Indexes for dumped tables
@@ -407,7 +355,7 @@ ALTER TABLE `character_recipes`
 -- AUTO_INCREMENT for table `gems`
 --
 ALTER TABLE `gems`
-  MODIFY `id` tinyint(3) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` tinyint(3) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 --
 -- AUTO_INCREMENT for table `item_page_categories`
 --
