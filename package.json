@@ -1,0 +1,19 @@
+{
+  "name": "eso_crafting_helper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app/index.js",
+  "scripts": {
+    "test": "node tests/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TimelikeClosure/eso_crafting_helper.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TimelikeClosure/eso_crafting_helper/issues"
+  },
+  "homepage": "https://github.com/TimelikeClosure/eso_crafting_helper#readme"
+}
