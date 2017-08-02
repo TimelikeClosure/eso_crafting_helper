@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Aug 02, 2017 at 02:27 PM
+-- Generation Time: Aug 02, 2017 at 03:29 PM
 -- Server version: 5.7.19-0ubuntu0.16.04.1
 -- PHP Version: 7.1.6-2~ubuntu14.04.1+deb.sury.org+1
 
@@ -100,18 +100,14 @@ CREATE TABLE `character_recipes` (
 
 CREATE TABLE `gems` (
   `id` tinyint(3) UNSIGNED NOT NULL,
-  `gem_name` varchar(15) NOT NULL
+  `name` varchar(15) NOT NULL,
+  `category_id` tinyint(3) UNSIGNED NOT NULL,
+  `trait` varchar(15) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Triggers `gems`
 --
-DELIMITER $$
-CREATE TRIGGER `add_attributes_to_new_gems` AFTER INSERT ON `gems` FOR EACH ROW INSERT INTO `gem_attributes` (`gem_id`, `category_id`)
-	SELECT NEW.id, item_page_categories.id
-    FROM item_page_categories
-$$
-DELIMITER ;
 DELIMITER $$
 CREATE TRIGGER `add_recipes_to_new_gems` AFTER INSERT ON `gems` FOR EACH ROW INSERT
 INTO
@@ -122,21 +118,14 @@ SELECT
   profession_items.id
 FROM
   profession_items
+JOIN
+  item_skill_categories
+  ON
+  profession_items.skill_category_id=item_skill_categories.id
+  WHERE
+  NEW.category_id=item_skill_categories.page_category_id
 $$
 DELIMITER ;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `gem_attributes`
---
-
-CREATE TABLE `gem_attributes` (
-  `id` tinyint(3) UNSIGNED NOT NULL,
-  `gem_id` tinyint(3) UNSIGNED NOT NULL,
-  `category_id` tinyint(3) UNSIGNED NOT NULL,
-  `name` varchar(15) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -252,6 +241,12 @@ SELECT
   gems.id
 FROM
   gems
+  JOIN
+  `item_skill_categories`
+  ON
+  `gems`.`category_id`=`item_skill_categories`.`page_category_id`
+  WHERE
+  NEW.skill_category_id=`item_skill_categories`.id
 $$
 DELIMITER ;
 
@@ -339,14 +334,7 @@ ALTER TABLE `character_recipes`
 -- Indexes for table `gems`
 --
 ALTER TABLE `gems`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `gem_attributes`
---
-ALTER TABLE `gem_attributes`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `gem_id` (`gem_id`,`category_id`),
   ADD KEY `category_id` (`category_id`);
 
 --
@@ -419,12 +407,7 @@ ALTER TABLE `character_recipes`
 -- AUTO_INCREMENT for table `gems`
 --
 ALTER TABLE `gems`
-  MODIFY `id` tinyint(3) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
---
--- AUTO_INCREMENT for table `gem_attributes`
---
-ALTER TABLE `gem_attributes`
-  MODIFY `id` tinyint(3) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` tinyint(3) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 --
 -- AUTO_INCREMENT for table `item_page_categories`
 --
@@ -449,12 +432,12 @@ ALTER TABLE `professions`
 -- AUTO_INCREMENT for table `profession_items`
 --
 ALTER TABLE `profession_items`
-  MODIFY `id` tinyint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` tinyint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 --
 -- AUTO_INCREMENT for table `profession_recipes`
 --
 ALTER TABLE `profession_recipes`
-  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 --
 -- AUTO_INCREMENT for table `recipe_statuses`
 --
@@ -481,11 +464,10 @@ ALTER TABLE `character_recipes`
   ADD CONSTRAINT `character_recipes_ibfk_4` FOREIGN KEY (`character_profession_id`) REFERENCES `character_professions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `gem_attributes`
+-- Constraints for table `gems`
 --
-ALTER TABLE `gem_attributes`
-  ADD CONSTRAINT `gem_attributes_ibfk_1` FOREIGN KEY (`gem_id`) REFERENCES `gems` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `gem_attributes_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `item_page_categories` (`id`) ON UPDATE CASCADE;
+ALTER TABLE `gems`
+  ADD CONSTRAINT `gems_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `item_page_categories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `item_skill_categories`
