@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Aug 02, 2017 at 11:57 AM
+-- Generation Time: Aug 02, 2017 at 02:27 PM
 -- Server version: 5.7.19-0ubuntu0.16.04.1
 -- PHP Version: 7.1.6-2~ubuntu14.04.1+deb.sury.org+1
 
@@ -32,14 +32,20 @@ CREATE TABLE `characters` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Characters';
 
 --
--- MIME TYPES FOR TABLE `characters`:
---   `id`
---       `Text_Plain`
+-- Triggers `characters`
 --
-
---
--- RELATIONS FOR TABLE `characters`:
---
+DELIMITER $$
+CREATE TRIGGER `add_professions_to_new_character` AFTER INSERT ON `characters` FOR EACH ROW INSERT
+INTO
+  `character_professions`(`character_id`,
+  `profession_id`)
+SELECT
+  NEW.id,
+  professions.id
+FROM
+  professions
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -56,14 +62,22 @@ CREATE TABLE `character_professions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- RELATIONS FOR TABLE `character_professions`:
---   `character_id`
---       `characters` -> `id`
---   `profession_id`
---       `professions` -> `id`
---   `priority_id`
---       `priorities` -> `id`
+-- Triggers `character_professions`
 --
+DELIMITER $$
+CREATE TRIGGER `add_recipes_to_new_character_professions` AFTER INSERT ON `character_professions` FOR EACH ROW INSERT
+INTO
+  `character_recipes`(`character_profession_id`,
+  `recipe_id`)
+SELECT
+  NEW.id,
+  profession_recipes.id
+FROM
+  profession_recipes
+  JOIN profession_items ON profession_recipes.item_id=profession_items.id
+  WHERE NEW.profession_id=profession_items.profession_id
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -73,20 +87,10 @@ CREATE TABLE `character_professions` (
 
 CREATE TABLE `character_recipes` (
   `id` smallint(5) UNSIGNED NOT NULL,
-  `character_id` tinyint(3) UNSIGNED NOT NULL,
+  `character_profession_id` smallint(3) UNSIGNED NOT NULL,
   `recipe_id` smallint(5) UNSIGNED NOT NULL,
   `status_id` tinyint(3) UNSIGNED NOT NULL DEFAULT '1'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `character_recipes`:
---   `character_id`
---       `characters` -> `id`
---   `recipe_id`
---       `profession_recipes` -> `id`
---   `status_id`
---       `recipe_statuses` -> `id`
---
 
 -- --------------------------------------------------------
 
@@ -100,8 +104,26 @@ CREATE TABLE `gems` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- RELATIONS FOR TABLE `gems`:
+-- Triggers `gems`
 --
+DELIMITER $$
+CREATE TRIGGER `add_attributes_to_new_gems` AFTER INSERT ON `gems` FOR EACH ROW INSERT INTO `gem_attributes` (`gem_id`, `category_id`)
+	SELECT NEW.id, item_page_categories.id
+    FROM item_page_categories
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `add_recipes_to_new_gems` AFTER INSERT ON `gems` FOR EACH ROW INSERT
+INTO
+  `profession_recipes`(`gem_id`,
+  `item_id`)
+SELECT
+  NEW.id,
+  profession_items.id
+FROM
+  profession_items
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -113,16 +135,8 @@ CREATE TABLE `gem_attributes` (
   `id` tinyint(3) UNSIGNED NOT NULL,
   `gem_id` tinyint(3) UNSIGNED NOT NULL,
   `category_id` tinyint(3) UNSIGNED NOT NULL,
-  `name` varchar(15) NOT NULL
+  `name` varchar(15) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `gem_attributes`:
---   `gem_id`
---       `gems` -> `id`
---   `category_id`
---       `item_page_categories` -> `id`
---
 
 -- --------------------------------------------------------
 
@@ -134,10 +148,6 @@ CREATE TABLE `item_page_categories` (
   `id` tinyint(3) UNSIGNED NOT NULL,
   `description` varchar(6) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `item_page_categories`:
---
 
 --
 -- Dumping data for table `item_page_categories`
@@ -158,12 +168,6 @@ CREATE TABLE `item_skill_categories` (
   `page_category_id` tinyint(3) UNSIGNED NOT NULL,
   `description` varchar(17) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `item_skill_categories`:
---   `page_category_id`
---       `item_page_categories` -> `id`
---
 
 --
 -- Dumping data for table `item_skill_categories`
@@ -193,10 +197,6 @@ CREATE TABLE `priorities` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- RELATIONS FOR TABLE `priorities`:
---
-
---
 -- Dumping data for table `priorities`
 --
 
@@ -216,10 +216,6 @@ CREATE TABLE `professions` (
   `id` tinyint(3) UNSIGNED NOT NULL,
   `name` varchar(15) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Professions';
-
---
--- RELATIONS FOR TABLE `professions`:
---
 
 --
 -- Dumping data for table `professions`
@@ -244,10 +240,20 @@ CREATE TABLE `profession_items` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- RELATIONS FOR TABLE `profession_items`:
---   `skill_category_id`
---       `item_skill_categories` -> `id`
+-- Triggers `profession_items`
 --
+DELIMITER $$
+CREATE TRIGGER `add_recipes_to_new_items` AFTER INSERT ON `profession_items` FOR EACH ROW INSERT
+INTO
+  `profession_recipes`(`item_id`,
+  `gem_id`)
+SELECT
+  NEW.id,
+  gems.id
+FROM
+  gems
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -262,12 +268,22 @@ CREATE TABLE `profession_recipes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- RELATIONS FOR TABLE `profession_recipes`:
---   `item_id`
---       `profession_items` -> `id`
---   `gem_id`
---       `gems` -> `id`
+-- Triggers `profession_recipes`
 --
+DELIMITER $$
+CREATE TRIGGER `add_character_on_new_profession_recipe` AFTER INSERT ON `profession_recipes` FOR EACH ROW INSERT
+INTO
+  `character_recipes`(`recipe_id`,
+  `character_profession_id`)
+SELECT
+  NEW.id,
+  character_professions.id
+FROM
+  character_professions
+  JOIN profession_items ON character_professions.profession_id=profession_items.profession_id
+  WHERE NEW.item_id=profession_items.id
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -280,10 +296,6 @@ CREATE TABLE `recipe_statuses` (
   `description` varchar(15) NOT NULL,
   `research_slot` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- RELATIONS FOR TABLE `recipe_statuses`:
---
 
 --
 -- Dumping data for table `recipe_statuses`
@@ -319,7 +331,7 @@ ALTER TABLE `character_professions`
 --
 ALTER TABLE `character_recipes`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `character_id` (`character_id`,`recipe_id`),
+  ADD UNIQUE KEY `character_id` (`character_profession_id`,`recipe_id`),
   ADD KEY `status_id` (`status_id`),
   ADD KEY `character_recipes_ibfk_2` (`recipe_id`);
 
@@ -376,7 +388,7 @@ ALTER TABLE `profession_items`
 ALTER TABLE `profession_recipes`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `item_id` (`item_id`,`gem_id`),
-  ADD KEY `gem_id` (`gem_id`);
+  ADD KEY `profession_recipes_ibfk_2` (`gem_id`);
 
 --
 -- Indexes for table `recipe_statuses`
@@ -392,27 +404,27 @@ ALTER TABLE `recipe_statuses`
 -- AUTO_INCREMENT for table `characters`
 --
 ALTER TABLE `characters`
-  MODIFY `id` tinyint(3) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` tinyint(3) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 --
 -- AUTO_INCREMENT for table `character_professions`
 --
 ALTER TABLE `character_professions`
-  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 --
 -- AUTO_INCREMENT for table `character_recipes`
 --
 ALTER TABLE `character_recipes`
-  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 --
 -- AUTO_INCREMENT for table `gems`
 --
 ALTER TABLE `gems`
-  MODIFY `id` tinyint(3) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` tinyint(3) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 --
 -- AUTO_INCREMENT for table `gem_attributes`
 --
 ALTER TABLE `gem_attributes`
-  MODIFY `id` tinyint(3) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` tinyint(3) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 --
 -- AUTO_INCREMENT for table `item_page_categories`
 --
@@ -437,12 +449,12 @@ ALTER TABLE `professions`
 -- AUTO_INCREMENT for table `profession_items`
 --
 ALTER TABLE `profession_items`
-  MODIFY `id` tinyint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` tinyint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 --
 -- AUTO_INCREMENT for table `profession_recipes`
 --
 ALTER TABLE `profession_recipes`
-  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 --
 -- AUTO_INCREMENT for table `recipe_statuses`
 --
@@ -456,7 +468,7 @@ ALTER TABLE `recipe_statuses`
 -- Constraints for table `character_professions`
 --
 ALTER TABLE `character_professions`
-  ADD CONSTRAINT `character_professions_ibfk_1` FOREIGN KEY (`character_id`) REFERENCES `characters` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `character_professions_ibfk_1` FOREIGN KEY (`character_id`) REFERENCES `characters` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `character_professions_ibfk_2` FOREIGN KEY (`profession_id`) REFERENCES `professions` (`id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `character_professions_ibfk_3` FOREIGN KEY (`priority_id`) REFERENCES `priorities` (`id`) ON UPDATE CASCADE;
 
@@ -464,15 +476,15 @@ ALTER TABLE `character_professions`
 -- Constraints for table `character_recipes`
 --
 ALTER TABLE `character_recipes`
-  ADD CONSTRAINT `character_recipes_ibfk_1` FOREIGN KEY (`character_id`) REFERENCES `characters` (`id`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `character_recipes_ibfk_2` FOREIGN KEY (`recipe_id`) REFERENCES `profession_recipes` (`id`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `character_recipes_ibfk_3` FOREIGN KEY (`status_id`) REFERENCES `recipe_statuses` (`id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `character_recipes_ibfk_2` FOREIGN KEY (`recipe_id`) REFERENCES `profession_recipes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `character_recipes_ibfk_3` FOREIGN KEY (`status_id`) REFERENCES `recipe_statuses` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `character_recipes_ibfk_4` FOREIGN KEY (`character_profession_id`) REFERENCES `character_professions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `gem_attributes`
 --
 ALTER TABLE `gem_attributes`
-  ADD CONSTRAINT `gem_attributes_ibfk_1` FOREIGN KEY (`gem_id`) REFERENCES `gems` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `gem_attributes_ibfk_1` FOREIGN KEY (`gem_id`) REFERENCES `gems` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `gem_attributes_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `item_page_categories` (`id`) ON UPDATE CASCADE;
 
 --
@@ -485,14 +497,15 @@ ALTER TABLE `item_skill_categories`
 -- Constraints for table `profession_items`
 --
 ALTER TABLE `profession_items`
-  ADD CONSTRAINT `profession_items_ibfk_1` FOREIGN KEY (`skill_category_id`) REFERENCES `item_skill_categories` (`id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `profession_items_ibfk_1` FOREIGN KEY (`skill_category_id`) REFERENCES `item_skill_categories` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `profession_items_ibfk_2` FOREIGN KEY (`profession_id`) REFERENCES `professions` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `profession_recipes`
 --
 ALTER TABLE `profession_recipes`
-  ADD CONSTRAINT `profession_recipes_ibfk_1` FOREIGN KEY (`item_id`) REFERENCES `profession_items` (`id`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `profession_recipes_ibfk_2` FOREIGN KEY (`gem_id`) REFERENCES `gems` (`id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `profession_recipes_ibfk_1` FOREIGN KEY (`item_id`) REFERENCES `profession_items` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `profession_recipes_ibfk_2` FOREIGN KEY (`gem_id`) REFERENCES `gems` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
