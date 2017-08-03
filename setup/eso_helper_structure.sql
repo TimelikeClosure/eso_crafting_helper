@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Aug 02, 2017 at 06:00 PM
+-- Generation Time: Aug 02, 2017 at 06:39 PM
 -- Server version: 5.7.19-0ubuntu0.16.04.1
 -- PHP Version: 7.1.6-2~ubuntu14.04.1+deb.sury.org+1
 
@@ -401,7 +401,7 @@ ALTER TABLE `character_professions`
 -- Constraints for table `character_recipes`
 --
 ALTER TABLE `character_recipes`
-  ADD CONSTRAINT `character_recipes_ibfk_2` FOREIGN KEY (`recipe_id`) REFERENCES `profession_recipes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `character_recipes_ibfk_2` FOREIGN KEY (`recipe_id`) REFERENCES `profession_recipes` (`id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `character_recipes_ibfk_3` FOREIGN KEY (`status_id`) REFERENCES `recipe_statuses` (`id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `character_recipes_ibfk_4` FOREIGN KEY (`character_profession_id`) REFERENCES `character_professions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -409,7 +409,7 @@ ALTER TABLE `character_recipes`
 -- Constraints for table `gems`
 --
 ALTER TABLE `gems`
-  ADD CONSTRAINT `gems_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `item_page_categories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `gems_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `item_page_categories` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `item_skill_categories`
@@ -428,5 +428,5 @@ ALTER TABLE `profession_items`
 -- Constraints for table `profession_recipes`
 --
 ALTER TABLE `profession_recipes`
-  ADD CONSTRAINT `profession_recipes_ibfk_1` FOREIGN KEY (`item_id`) REFERENCES `profession_items` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `profession_recipes_ibfk_2` FOREIGN KEY (`gem_id`) REFERENCES `gems` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `profession_recipes_ibfk_1` FOREIGN KEY (`item_id`) REFERENCES `profession_items` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `profession_recipes_ibfk_2` FOREIGN KEY (`gem_id`) REFERENCES `gems` (`id`) ON UPDATE CASCADE;
